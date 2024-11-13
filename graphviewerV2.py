@@ -234,7 +234,8 @@ class GraphViewerV2(tk.Tk):
         y_data_by_temp = self.matrix[plot_index * 2][component_index]
         uncertainty_data = self.matrix[plot_index * 2 + 1][component_index]
         shape_data_by_temp = self.shape_matrix[plot_index * 2][component_index]  # Access shape data
-
+        print(y_data_by_temp)
+        print(uncertainty_data)
         # Plot the data for the selected component
         count = 0
         for file_idx, (y_values, uncertainty_values, shape) in enumerate(zip(y_data_by_temp, uncertainty_data, shape_data_by_temp)):
