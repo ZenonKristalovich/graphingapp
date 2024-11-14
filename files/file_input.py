@@ -5,6 +5,7 @@ from PyQt5.QtGui import QPainter, QPixmap
 import os
 from DropArea import DropAreaWidget
 from graph_app import GraphApp
+from PyQt5.QtGui import QGuiApplication
 
 class File_Input(QWidget):
     # Define a signal that will be emitted when it's time to switch the page
@@ -14,6 +15,13 @@ class File_Input(QWidget):
         super().__init__()
 
         self.files = []
+
+        screen = QGuiApplication.primaryScreen()
+        screen_size = screen.size()
+        screen_width = screen_size.width()
+        screen_height = screen_size.height()
+        self.width = screen_width / 2256
+        self.height = screen_height/ 1504
 
         # Outer layout to add padding around the grid layout
         outer_layout = QVBoxLayout()
@@ -30,35 +38,35 @@ class File_Input(QWidget):
 
         # List of Current Files
         self.file_list = QListWidget()
-        self.file_list.setFixedWidth(600)
-        self.file_list.setFixedHeight(800)
+        self.file_list.setFixedWidth(int(600*self.width))
+        self.file_list.setFixedHeight(int(800*self.height))
         self.file_list.setStyleSheet("font-size: 36px;")
         main_layout.addWidget(self.file_list, 1, 0, 3, 2)  # Row 1-4, Column 0-1 (spans 4 rows)
 
         # Clear Files Button
         clear_button = QPushButton("Clear Files")
-        clear_button.setFixedWidth(600)
-        clear_button.setFixedHeight(100)
+        clear_button.setFixedWidth(int(600*self.width))
+        clear_button.setFixedHeight(int(100*self.height))
         clear_button.clicked.connect(self.clear_files)
         clear_button.setStyleSheet("font-weight: bold; font-size: 36px;")
         main_layout.addWidget(clear_button, 4, 0, 1, 2)  # Row 5, Column 0-1 (spans 2 columns)
 
         # Right Section: Import Files and Drag-and-Drop
         import_button = QPushButton("Import Files")
-        import_button.setFixedHeight(100)
-        import_button.setFixedWidth(500)
+        import_button.setFixedHeight(int(100*self.height))
+        import_button.setFixedWidth(int(500*self.width))
         import_button.clicked.connect(self.open_file_dialog)
         import_button.setStyleSheet("font-weight: bold; font-size: 36px;")
         main_layout.addWidget(import_button, 1, 3)  # Row 1, Column 3
 
         # Drag and Drop Section
         self.drop_area = DropAreaWidget(self)
-        self.drop_area.setFixedHeight(500)
-        self.drop_area.setFixedWidth(500)
+        self.drop_area.setFixedHeight(int(500*self.height))
+        self.drop_area.setFixedWidth(int(500*self.width))
 
         self.drag_and_drop_label = QLabel("Drag and Drop Files Here")
-        self.drag_and_drop_label.setFixedHeight(500)
-        self.drag_and_drop_label.setFixedWidth(500)
+        self.drag_and_drop_label.setFixedHeight(int(500*self.height))
+        self.drag_and_drop_label.setFixedWidth(int(500*self.width))
         self.drag_and_drop_label.setStyleSheet("""
                                             border: 4px dashed black;
                                             font-size: 28px;
@@ -72,8 +80,8 @@ class File_Input(QWidget):
 
         # Start Graphing Button
         start_graphing_button = QPushButton("Start Graphing")
-        start_graphing_button.setFixedHeight(100)
-        start_graphing_button.setFixedWidth(500)
+        start_graphing_button.setFixedHeight(int(100*self.height))
+        start_graphing_button.setFixedWidth(int(500*self.width))
         start_graphing_button.setStyleSheet("font-weight: bold; font-size: 36px;")
         start_graphing_button.clicked.connect(self.start_graphing)
         main_layout.addWidget(start_graphing_button, 3, 3)  # Row 4, Column 3
@@ -100,7 +108,6 @@ class File_Input(QWidget):
         self.file_list.clear()
 
     def start_graphing(self):
-        print("TEST")
         if len(self.files) == 0:
             self.show_warning("Must Have At Least One File")
         self.switch_to_graphing_page.emit(self.files)
