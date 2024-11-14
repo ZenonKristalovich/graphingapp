@@ -72,11 +72,22 @@ class GraphApp(QWidget):
         self.grid.addWidget(filter_title, 0, 1,1,2)
 
         label = QLabel(self)
-        pixmap = QPixmap("files/filters.png")
+        pixmap = QPixmap("files/white.png")
         label.setPixmap(pixmap)
         label.setAlignment(Qt.AlignCenter)  # Optional: to center the image in the label
         label.setScaledContents(True)
         self.grid.addWidget(label, 1, 1, 21, 5)
+
+        #SetUp Rows
+        for x in range(1,21):
+            label = QLabel(self)
+            if( x % 2 == 0):
+                pixmap = QPixmap("files/blue.png")
+            else:
+                pixmap = QPixmap("files/white.png")
+            label.setPixmap(pixmap)
+            label.setScaledContents(True)
+            self.grid.addWidget(label, x, 1, 1, 5)
 
         self.setup_labels(self.grid)
         self.setup_inputs(self.grid)
@@ -97,11 +108,13 @@ class GraphApp(QWidget):
 
         #Blanks
         blank = QLabel("")
-        blank.setFixedWidth(600)
+        blank.setFixedWidth(int(600*self.width))
         self.grid.addWidget(blank, 0, 6)
 
         # Set up Matplotlib canvas
         self.canvas = FigureCanvas(Figure(figsize=(width, height), dpi=dpi))
+        #self.canvas.setFixedSize(int(1000*self.width), int(900*self.height)) 
+        self.canvas.setFixedHeight(int(700*self.height))
         self.canvas.axes = self.canvas.figure.add_subplot(111)
         self.grid.addWidget(self.canvas, 1, 6, 12, 2)
 

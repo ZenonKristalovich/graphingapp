@@ -6,6 +6,7 @@ from multi_graph import MultiGraphApp
 from PyQt5.QtGui import QPainter, QPixmap
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QGuiApplication
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -88,8 +89,15 @@ if __name__ == "__main__":
     app.setAttribute(Qt.AA_EnableHighDpiScaling)  # Enable high DPI scaling
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
+    screen = QGuiApplication.primaryScreen()
+    screen_size = screen.size()
+    screen_width = screen_size.width()
+    screen_height = screen_size.height()
+    width = screen_width / 2256
+    height = screen_height/ 1504
+
     # Set a general font for the entire application
-    general_font = QFont("Arial", 8)  # Customize the font and size as needed
+    general_font = QFont("Arial", 8*int(height))  # Customize the font and size as needed
     app.setFont(general_font)
 
     window = MainWindow()
