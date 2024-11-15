@@ -72,7 +72,7 @@ class GraphApp(QWidget):
         self.grid.addWidget(filter_title, 0, 1,1,2)
 
         label = QLabel(self)
-        pixmap = QPixmap("files/white.png")
+        pixmap = QPixmap("white.png")
         label.setPixmap(pixmap)
         label.setAlignment(Qt.AlignCenter)  # Optional: to center the image in the label
         label.setScaledContents(True)
@@ -82,9 +82,9 @@ class GraphApp(QWidget):
         for x in range(1,21):
             label = QLabel(self)
             if( x % 2 == 0):
-                pixmap = QPixmap("files/blue.png")
+                pixmap = QPixmap("blue.png")
             else:
-                pixmap = QPixmap("files/white.png")
+                pixmap = QPixmap("white.png")
             label.setPixmap(pixmap)
             label.setScaledContents(True)
             self.grid.addWidget(label, x, 1, 1, 5)
@@ -142,14 +142,17 @@ class GraphApp(QWidget):
 
         lbl = QLabel("Line Size:")
         lbl.setFixedWidth(int(150*self.width))
+        lbl.setFixedHeight(int(40*self.height))
         grid.addWidget(lbl, 11 + self.components, 1)
 
         lbl = QLabel("Cap Size: ")
         lbl.setFixedWidth(int(150*self.width))
+        lbl.setFixedHeight(int(40*self.height))
         grid.addWidget(lbl, 12 + self.components, 1)
 
         lbl = QLabel("Legend Position:")
         lbl.setFixedWidth(int(150*self.width))
+        lbl.setFixedHeight(int(40*self.height))
         grid.addWidget(lbl, 13 + self.components, 1)
 
     def setup_inputs(self, grid):
@@ -172,7 +175,7 @@ class GraphApp(QWidget):
         self.font_style_input = QComboBox()
         self.font_style_input.setFixedWidth(int(300*self.width))  
         self.font_style_input.setFixedHeight(int(40*self.height)) 
-        common_font_styles = ["Arial", "Times New Roman", "Courier New", "Comic Sans MS", "Verdana"]
+        common_font_styles = ["Arial", "Times New Roman", "Courier New", "Comic Sans MS", "Verdana","Impact","Lucida Console","DejaVu Sans"]
         self.font_style_input.addItems(common_font_styles)
 
         grid.addWidget(self.font_style_input, 2, 2, 1, 2)  # Spanning 2 columns
