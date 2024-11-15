@@ -106,6 +106,7 @@ class File_Input(QWidget):
     def clear_files(self):
         # Clear all files from the list
         self.file_list.clear()
+        self.files.clear()
 
     def start_graphing(self):
         if len(self.files) == 0:

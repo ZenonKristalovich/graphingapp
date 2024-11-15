@@ -14,6 +14,7 @@ from plotter import draw_multi_plot
 from button_functions import GraphFunctions
 import matplotlib.pyplot as plt
 import re
+from PyQt5.QtGui import QGuiApplication
 
 
 
@@ -25,9 +26,16 @@ class MultiGraphApp(QWidget):
     def __init__(self, filenames=None, width=7, height=2, dpi=100):
         super().__init__()
         self.filenames = filenames if filenames else []
+        self.file_names_short = [path.split('/')[-1].replace('.csv', '') for path in self.filenames]
 
         # Create an instance of GraphFunctions and pass self
         self.functions = GraphFunctions(self)
+        screen = QGuiApplication.primaryScreen()
+        screen_size = screen.size()
+        screen_width = screen_size.width()
+        screen_height = screen_size.height()
+        self.width = screen_width / 2256
+        self.height = screen_height/ 1504
 
         #Data
         self.font_size = 20
@@ -39,7 +47,7 @@ class MultiGraphApp(QWidget):
         self.x_title = None
         self.y_title = None
         self.pointer_size = 8
-        self.component_names =  ['A1', 'B0', 'B1','XX','XX','XX']
+        self.component_names =  ['A', 'B0', 'B1','XX','XX','XX']
         self.pointer_types = ['o','o','o','o','o','o','o','o']
         self.colours = ['#FF1493','#8A2BE2','#20B2AA','#ff0000','#ff0000','#ff0000']
         self.legend = "TopRight"
@@ -58,7 +66,7 @@ class MultiGraphApp(QWidget):
         # Set up layout
         main_layout = QVBoxLayout()
         self.grid = QGridLayout()
-        self.grid.setVerticalSpacing(5)
+        self.grid.setVerticalSpacing(int(5*self.height))
 
         #start up
         self.start_up()
@@ -69,11 +77,22 @@ class MultiGraphApp(QWidget):
         self.grid.addWidget(filter_title, 0, 1,1,2)
 
         label = QLabel(self)
-        pixmap = QPixmap("files/filters.png")
+        pixmap = QPixmap("files/white.png")
         label.setPixmap(pixmap)
         label.setAlignment(Qt.AlignCenter)  # Optional: to center the image in the label
         label.setScaledContents(True)
         self.grid.addWidget(label, 1, 1, 21, 5)
+
+        #SetUp Rows
+        for x in range(1,21):
+            label = QLabel(self)
+            if( x % 2 == 0):
+                pixmap = QPixmap("files/blue.png")
+            else:
+                pixmap = QPixmap("files/white.png")
+            label.setPixmap(pixmap)
+            label.setScaledContents(True)
+            self.grid.addWidget(label, x, 1, 1, 5)
 
         self.setup_labels(self.grid)
         self.setup_inputs(self.grid)
@@ -83,23 +102,24 @@ class MultiGraphApp(QWidget):
         self.add_blanks(self.grid)
         self.graph_title = QLabel(f'Graph Image {self.current_file_index + 1}/{self.total_graphs * self.components}')
         self.graph_title.setStyleSheet("font-weight: bold; font-size: 36px;")
-        self.graph_title.setFixedWidth(600)
+        self.graph_title.setFixedWidth(int(600*self.width))
         self.grid.addWidget(self.graph_title, 0, 6)
 
         self.main_button = QPushButton("Back To Main")
         self.main_button.clicked.connect(self.go_main)
-        self.main_button.setFixedHeight(60)
+        self.main_button.setFixedHeight(int(60*self.height))
         self.main_button.setStyleSheet("font-weight: bold; font-size: 28px;")
         self.grid.addWidget(self.main_button, 0, 7)
 
         #Blanks
         blank = QLabel("")
-        blank.setFixedWidth(600)
+        blank.setFixedWidth(int(600*self.width))
         self.grid.addWidget(blank, 0, 6)
 
         # Set up Matplotlib canvas
         self.canvas = FigureCanvas(Figure(figsize=(width, height), dpi=dpi))
         self.canvas.axes = self.canvas.figure.add_subplot(111)
+        self.canvas.setFixedHeight(int(700*self.height))
         self.grid.addWidget(self.canvas, 1, 6, 12, 2)
 
         # Image Control Buttons
@@ -121,21 +141,21 @@ class MultiGraphApp(QWidget):
         ]
         for i, label in enumerate(labels, start=1):
             lbl = QLabel(label)
-            lbl.setFixedWidth(150)
-            lbl.setFixedHeight(40)
+            lbl.setFixedWidth(int(150*self.width))
+            lbl.setFixedHeight(int(40*self.height))
             grid.addWidget(lbl, i, 1)
 
         lbl = QLabel("Line Size:")
-        lbl.setFixedWidth(150)
-        grid.addWidget(lbl, 11 + self.components, 1)
+        lbl.setFixedWidth(int(150*self.width))
+        grid.addWidget(lbl, 11 + self.files, 1)
 
         lbl = QLabel("Cap Size: ")
-        lbl.setFixedWidth(150)
-        grid.addWidget(lbl, 12 + self.components, 1)
+        lbl.setFixedWidth(int(150*self.width))
+        grid.addWidget(lbl, 12 + self.files, 1)
 
         lbl = QLabel("Legend Position:")
-        lbl.setFixedWidth(150)
-        grid.addWidget(lbl, 13 + self.components, 1)
+        lbl.setFixedWidth(int(150*self.width))
+        grid.addWidget(lbl, 13 + self.files, 1)
 
     def setup_inputs(self, grid):
         self.inputs = []
@@ -143,8 +163,8 @@ class MultiGraphApp(QWidget):
         # Create a QComboBox for the font size selection
         self.font_size_input = QComboBox()
         self.font_size_input.setEditable(True)  # Allow the user to type in an exact size
-        self.font_size_input.setFixedWidth(150)
-        self.font_size_input.setFixedHeight(40) 
+        self.font_size_input.setFixedWidth(int(150*self.width))
+        self.font_size_input.setFixedHeight(int(40*self.height)) 
         common_font_sizes = ["8", "10", "12", "14", "16", "18", "20", "24", "28", "32", "36"]
         self.font_size_input.addItems(common_font_sizes)
 
@@ -155,8 +175,8 @@ class MultiGraphApp(QWidget):
 
         # Font style selection (spanning 2 columns)
         self.font_style_input = QComboBox()
-        self.font_style_input.setFixedWidth(300)  
-        self.font_style_input.setFixedHeight(40) 
+        self.font_style_input.setFixedWidth(int(300*self.width))  
+        self.font_style_input.setFixedHeight(int(40*self.height)) 
         common_font_styles = ["Arial", "Times New Roman", "Courier New", "Comic Sans MS", "Verdana"]
         self.font_style_input.addItems(common_font_styles)
 
@@ -165,18 +185,18 @@ class MultiGraphApp(QWidget):
 
         # X bounds (min and max) each taking 1 column
         self.x_min = QLineEdit()
-        self.x_min.setFixedWidth(100)  # Set fixed width
+        self.x_min.setFixedWidth(int(100*self.width))  # Set fixed width
         grid.addWidget(self.x_min, 3, 2)  # Min value in column 2
         self.x_max = QLineEdit()
-        self.x_max.setFixedWidth(100)  # Set fixed width
+        self.x_max.setFixedWidth(int(100*self.width))  # Set fixed width
         grid.addWidget(self.x_max, 3, 3)  # Max value in column 3
 
         # Y bounds (min and max) each taking 1 column
         self.y_min = QLineEdit()
-        self.y_min.setFixedWidth(100)  # Set fixed width
+        self.y_min.setFixedWidth(int(100*self.width))  # Set fixed width
         grid.addWidget(self.y_min, 4, 2)  # Min value in column 2
         self.y_max = QLineEdit()
-        self.y_max.setFixedWidth(100)  # Set fixed width
+        self.y_max.setFixedWidth(int(100*self.width))  # Set fixed width
         grid.addWidget(self.y_max, 4, 3)  # Max value in column 3
 
         # Create QLineEdit inputs for the rest, each will span 2 columns
@@ -186,52 +206,52 @@ class MultiGraphApp(QWidget):
         
         for i, label in enumerate(other_labels, start=5):  # Start from row 5 onwards
             input_field = QLineEdit()
-            input_field.setFixedWidth(300)  # Set fixed width
+            input_field.setFixedWidth(int(300*self.width))  # Set fixed width
             grid.addWidget(input_field, i, 2, 1, 2)  # Spanning 2 columns
             self.inputs.append(input_field)
         
         # Create a QComboBox for the font size selection
         self.pointer_size_input = QComboBox()
         self.pointer_size_input.setEditable(True)  # Allow the user to type in an exact size
-        self.pointer_size_input.setFixedWidth(150) 
-        self.pointer_size_input.setFixedHeight(40) 
+        self.pointer_size_input.setFixedWidth(int(150*self.width)) 
+        self.pointer_size_input.setFixedHeight(int(40*self.height)) 
         common_pointer_sizes = ["5", "6", "8", "10", "12", "14", "16", "18", "20"]
         self.pointer_size_input.addItems(common_pointer_sizes)
         self.pointer_size_input.setCurrentText(str(self.pointer_size))
         grid.addWidget(self.pointer_size_input, 9, 2) 
 
         self.hollow_input = QComboBox()
-        self.hollow_input.setFixedWidth(150) 
-        self.hollow_input.setFixedHeight(40) 
+        self.hollow_input.setFixedWidth(int(150*self.width)) 
+        self.hollow_input.setFixedHeight(int(40*self.height)) 
         hollow_options = ["Full","Hollow"]
         self.hollow_input.addItems(hollow_options)
         grid.addWidget(self.hollow_input, 9, 3) 
 
         self.line_input = QComboBox()
         self.line_input.setEditable(True)
-        self.line_input.setFixedWidth(150) 
-        self.line_input.setFixedHeight(40) 
+        self.line_input.setFixedWidth(int(150*self.width)) 
+        self.line_input.setFixedHeight(int(40*self.height)) 
         line_options = ["2","4","6","8","10","12"]
         self.line_input.addItems(line_options)
         self.line_input.setCurrentText(str(self.line_size))
-        grid.addWidget(self.line_input, 11 + self.components, 2) 
+        grid.addWidget(self.line_input, 11 + self.files, 2) 
 
         self.cap_input = QComboBox()
         self.cap_input.setEditable(True)
-        self.cap_input.setFixedWidth(150) 
-        self.cap_input.setFixedHeight(40) 
+        self.cap_input.setFixedWidth(int(150*self.width)) 
+        self.cap_input.setFixedHeight(int(40*self.height)) 
         line_options = ["2","4","6","8","10","12"]
         self.cap_input.addItems(line_options)
         self.cap_input.setCurrentText(str(self.cap_size))
-        grid.addWidget(self.cap_input, 12 + self.components, 2)
+        grid.addWidget(self.cap_input, 12 + self.files, 2)
 
         self.legend_input = QComboBox()
-        self.legend_input.setFixedWidth(200) 
-        self.legend_input.setFixedHeight(40) 
-        legend_pos = ["TopLeft","TopRight","BottomLeft","BottomRight","Inside"]
+        self.legend_input.setFixedWidth(int(200*self.width)) 
+        self.legend_input.setFixedHeight(int(40*self.height)) 
+        legend_pos = ["TopLeft","TopRight","BottomLeft","BottomRight","Inside","No Legend"]
         self.legend_input.addItems(legend_pos)
         self.legend_input.setCurrentText("TopRight")
-        grid.addWidget(self.legend_input, 13 + self.components, 2, 1, 2) 
+        grid.addWidget(self.legend_input, 13 + self.files, 2, 1, 2) 
 
     def setup_pointers(self, grid):
         self.pointers = []
@@ -245,21 +265,21 @@ class MultiGraphApp(QWidget):
                                 "Thin Diamond (d)", "Vertical Line (|)", "Horizontal Line (_)" 
                                 ]
 
-        for i in range(self.components):
+        for i in range(self.files):
 
             temp = QLabel("")
-            temp.setFixedHeight(45)
+            temp.setFixedHeight(int(45*self.height))
             grid.addWidget(temp, i + start, 1)
 
 
-            name = QLineEdit(self.component_names[i])
-            name.setFixedWidth(100)
+            name = QLineEdit(self.file_names_short[i])
+            name.setFixedWidth(int(100*self.width))
             grid.addWidget(name, i + start, 2)
             self.alter_componenets.append(name)
             
             selection = QComboBox()
-            selection.setFixedWidth(250)
-            selection.setFixedHeight(40)
+            selection.setFixedWidth(int(250*self.width))
+            selection.setFixedHeight(int(40*self.height))
             selection.addItems(common_pointer_shapes)
             selection.setCurrentText("Circle (o)")
             grid.addWidget(selection, i + start, 3,1,2)
@@ -267,8 +287,8 @@ class MultiGraphApp(QWidget):
 
             # Create a square button
             button = QPushButton(self)
-            button.setFixedWidth(40)
-            button.setFixedHeight(40)
+            button.setFixedWidth(int(30*self.width))
+            button.setFixedHeight(int(30*self.width))
             button.setStyleSheet(f"background-color: {self.colours[i]};")  # Initial background color (white)
             grid.addWidget(button, i + start, 5)
             button.clicked.connect(lambda checked, i=i: self.show_color_dialog(i))
@@ -279,14 +299,14 @@ class MultiGraphApp(QWidget):
         self.buttons = []
         for i in range(10):
             button = QPushButton("Apply")
-            button.setFixedWidth(150)
+            button.setFixedWidth(int(150*self.width))
             grid.addWidget(button, i + 1, 4)
             self.buttons.append(button)
         
         for i in range(3):
             button = QPushButton("Apply")
-            button.setFixedWidth(150)
-            self.grid.addWidget(button, 11 + self.components + i, 4)
+            button.setFixedWidth(int(150*self.width))
+            self.grid.addWidget(button, 11 + self.files + i, 4)
             self.buttons.append(button)
         
         self.buttons[0].clicked.connect(self.apply_font_size)
@@ -307,15 +327,15 @@ class MultiGraphApp(QWidget):
         self.checkboxes = []
         for i in range(10):
             checkbox = QCheckBox("No Reset")
-            checkbox.setFixedWidth(175)
+            checkbox.setFixedWidth(int(175*self.width))
             self.checkboxes.append(checkbox)
             grid.addWidget(checkbox, i + 1, 5)
 
         for i in range(3):
             checkbox = QCheckBox("No Reset")
-            checkbox.setFixedWidth(175)
+            checkbox.setFixedWidth(int(175*self.width))
             self.checkboxes.append(checkbox)
-            grid.addWidget(checkbox, 11 + self.components + i, 5)
+            grid.addWidget(checkbox, 11 + self.files + i, 5)
 
         self.checkboxes[0].setChecked(True)
         self.checkboxes[1].setChecked(True)
@@ -327,22 +347,22 @@ class MultiGraphApp(QWidget):
 
     def setup_navigation_buttons(self, grid):
         previous_button = QPushButton("Previous")
-        previous_button.setFixedWidth(600)
-        previous_button.setFixedHeight(80)
+        previous_button.setFixedWidth(int(600*self.width))
+        previous_button.setFixedHeight(int(80*self.height))
         previous_button.clicked.connect(self.previous_file)
         previous_button.setStyleSheet("font-weight: bold; font-size: 36px;")
         grid.addWidget(previous_button, 13, 6, 2, 1)
 
         next_button = QPushButton("Next")
-        next_button.setFixedWidth(600)
-        next_button.setFixedHeight(80)
+        next_button.setFixedWidth(int(600*self.width))
+        next_button.setFixedHeight(int(80*self.height))
         next_button.clicked.connect(self.next_file)
         next_button.setStyleSheet("font-weight: bold; font-size: 36px;")
         grid.addWidget(next_button, 13, 7, 2, 1)
 
         download_button = QPushButton("Download Image")
-        download_button.setFixedWidth(1260)
-        download_button.setFixedHeight(80)
+        download_button.setFixedWidth(int(1260*self.width))
+        download_button.setFixedHeight(int(80*self.height))
         download_button.clicked.connect(self.download_plot)
         download_button.setStyleSheet("font-weight: bold; font-size: 36px;")
         grid.addWidget(download_button, 15, 6, 2,2)
@@ -350,7 +370,7 @@ class MultiGraphApp(QWidget):
     def add_blanks(self,grid):
         for x in range(13 - self.components):
             empty = QLabel("")
-            empty.setFixedHeight(40)
+            empty.setFixedHeight(int(40*self.height))
             grid.addWidget(empty, 13 + self.components + x, 1)
 
     def plot_data(self):
@@ -359,7 +379,7 @@ class MultiGraphApp(QWidget):
                   self.temperatures, self.components, self.x_bounds,self.y_bounds, 
                   self.dashed_lines, self.title, self.x_title,self.y_title, self.pointer_size,
                   self.component_names, self.pointer_types, self.legend, self.colours,
-                  self.hollow, self.line_size, self.cap_size)
+                  self.hollow, self.line_size, self.cap_size, self.file_names_short)
 
     def next_file(self):
         self.current_file_index += 1
@@ -407,7 +427,10 @@ class MultiGraphApp(QWidget):
             if self.x_min.text() == "" or self.x_max.text() == "":
                 self.x_bounds = None
             else:
-                self.x_bounds = self.x_min.text() + '|' + self.x_max.text()
+                if float(self.x_min.text()) < float(self.x_max.text()):
+                    self.x_bounds = self.x_min.text() + '|' + self.x_max.text()
+                else:
+                    self.x_bounds = self.x_max.text() + '|' + self.x_min.text()
             self.plot_data()
         except ValueError:
             warning = "Invalid Input in X-Bounds"
@@ -418,12 +441,15 @@ class MultiGraphApp(QWidget):
             if self.y_min.text() == "" or self.y_max.text() == "":
                 self.y_bounds = None
             else:
-                self.y_bounds = self.y_min.text() + '|' + self.y_max.text()
+                if float(self.y_min.text()) < float(self.y_max.text()):
+                    self.y_bounds = self.y_min.text() + '|' + self.y_max.text()
+                else:
+                    self.y_bounds = self.y_max.text() + '|' + self.y_min.text()
             self.plot_data()
         except ValueError:
             warning = "Invalid Input in Y-Bounds"
             self.show_warning(warning)
-
+            
     def add_dashed_line(self):
         try:
             pos = self.inputs[2].text()
@@ -435,10 +461,7 @@ class MultiGraphApp(QWidget):
     
     def set_title(self):
         temp = self.inputs[3].text()
-        if temp == '':
-            self.title = None
-        else:
-            self.title = temp
+        self.title = temp
         self.plot_data()
     
     def set_xtitle(self):
@@ -479,7 +502,7 @@ class MultiGraphApp(QWidget):
                 self.show_warning("Pointer Names should not be Empty")
                 return
             names.append(self.alter_componenets[x].text())
-        self.component_names = names
+        self.file_names_short = names
 
         for x in range(len(self.pointers)):
             string = self.pointers[x].currentText()
@@ -572,7 +595,7 @@ class MultiGraphApp(QWidget):
             self.dashed_lines = []
             self.inputs[2].setText("")
         if not self.checkboxes[5].isChecked():
-            self.title = ""
+            self.title = None
             self.inputs[3].setText("")
         if not self.checkboxes[6].isChecked():
             self.x_title = None

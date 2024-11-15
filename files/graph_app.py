@@ -46,7 +46,7 @@ class GraphApp(QWidget):
         self.x_title = None
         self.y_title = None
         self.pointer_size = 8
-        self.component_names =  ['A1', 'B0', 'B1','XX','XX','XX']
+        self.component_names =  ['A', 'B0', 'B1','XX','XX','XX']
         self.pointer_types = ['o','o','o','o','o','o','o','o']
         self.colours = ['#FF1493','#8A2BE2','#20B2AA','#ff0000','#ff0000','#ff0000']
         self.legend = "TopRight"
@@ -113,7 +113,6 @@ class GraphApp(QWidget):
 
         # Set up Matplotlib canvas
         self.canvas = FigureCanvas(Figure(figsize=(width, height), dpi=dpi))
-        #self.canvas.setFixedSize(int(1000*self.width), int(900*self.height)) 
         self.canvas.setFixedHeight(int(700*self.height))
         self.canvas.axes = self.canvas.figure.add_subplot(111)
         self.grid.addWidget(self.canvas, 1, 6, 12, 2)
@@ -244,7 +243,7 @@ class GraphApp(QWidget):
         self.legend_input = QComboBox()
         self.legend_input.setFixedWidth(int(200*self.width)) 
         self.legend_input.setFixedHeight(int(40*self.height)) 
-        legend_pos = ["TopLeft","TopRight","BottomLeft","BottomRight","Inside"]
+        legend_pos = ["TopLeft","TopRight","BottomLeft","BottomRight","Inside", "No Legend"]
         self.legend_input.addItems(legend_pos)
         self.legend_input.setCurrentText("TopRight")
         grid.addWidget(self.legend_input, 13 + self.components, 2, 1, 2) 
@@ -283,8 +282,8 @@ class GraphApp(QWidget):
 
             # Create a square button
             button = QPushButton(self)
-            button.setFixedWidth(int(40*self.width))
-            button.setFixedHeight(int(40*self.width))
+            button.setFixedWidth(int(30*self.width))
+            button.setFixedHeight(int(30*self.width))
             button.setStyleSheet(f"background-color: {self.colours[i]};")  # Initial background color (white)
             grid.addWidget(button, i + start, 5)
             button.clicked.connect(lambda checked, i=i: self.show_color_dialog(i))
@@ -421,7 +420,10 @@ class GraphApp(QWidget):
             if self.x_min.text() == "" or self.x_max.text() == "":
                 self.x_bounds = None
             else:
-                self.x_bounds = self.x_min.text() + '|' + self.x_max.text()
+                if float(self.x_min.text()) < float(self.x_max.text()):
+                    self.x_bounds = self.x_min.text() + '|' + self.x_max.text()
+                else:
+                    self.x_bounds = self.x_max.text() + '|' + self.x_min.text()
             self.plot_data()
         except ValueError:
             warning = "Invalid Input in X-Bounds"
@@ -432,7 +434,10 @@ class GraphApp(QWidget):
             if self.y_min.text() == "" or self.y_max.text() == "":
                 self.y_bounds = None
             else:
-                self.y_bounds = self.y_min.text() + '|' + self.y_max.text()
+                if float(self.y_min.text()) < float(self.y_max.text()):
+                    self.y_bounds = self.y_min.text() + '|' + self.y_max.text()
+                else:
+                    self.y_bounds = self.y_max.text() + '|' + self.y_min.text()
             self.plot_data()
         except ValueError:
             warning = "Invalid Input in Y-Bounds"
