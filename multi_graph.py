@@ -15,7 +15,9 @@ from button_functions import GraphFunctions
 import matplotlib.pyplot as plt
 import re
 from PyQt5.QtGui import QGuiApplication
-
+import sys
+import os
+from PyQt5.QtGui import QIcon
 
 
 
@@ -36,6 +38,21 @@ class MultiGraphApp(QWidget):
         screen_height = screen_size.height()
         self.width = screen_width / 2256
         self.height = screen_height/ 1504
+
+        if hasattr(sys, '_MEIPASS'):
+            # If running as a bundled app (PyInstaller)
+            base_image = os.path.join(sys._MEIPASS, 'base_background.png')
+            white_image = os.path.join(sys._MEIPASS, 'white.png')
+            blue_image = os.path.join(sys._MEIPASS, 'blue.png')
+            icon = os.path.join(sys._MEIPASS, 'Gamma.jpg')
+        else:
+            # If running from the source directory
+            base_image = 'base_background.png'
+            white_image = 'white.png'
+            blue_image = 'blue.png'
+            icon = 'Gamma.jpg'
+
+        self.setWindowIcon(QIcon(icon))
 
         #Data
         self.font_size = 20
@@ -77,7 +94,7 @@ class MultiGraphApp(QWidget):
         self.grid.addWidget(filter_title, 0, 1,1,2)
 
         label = QLabel(self)
-        pixmap = QPixmap("white.png")
+        pixmap = QPixmap(white_image)
         label.setPixmap(pixmap)
         label.setAlignment(Qt.AlignCenter)  # Optional: to center the image in the label
         label.setScaledContents(True)
@@ -87,9 +104,9 @@ class MultiGraphApp(QWidget):
         for x in range(1,21):
             label = QLabel(self)
             if( x % 2 == 0):
-                pixmap = QPixmap("blue.png")
+                pixmap = QPixmap(blue_image)
             else:
-                pixmap = QPixmap("white.png")
+                pixmap = QPixmap(white_image)
             label.setPixmap(pixmap)
             label.setScaledContents(True)
             self.grid.addWidget(label, x, 1, 1, 5)
@@ -403,9 +420,13 @@ class MultiGraphApp(QWidget):
         """Opens a dialog to save the current plot as an image file (PNG or PDF)."""
         if self.canvas:
             # Open file dialog to save the file
-            file_path = QFileDialog.getSaveFileName(self, "Save Plot", "", 
-                                                    "PDF files (*.pdf);;PNG files (*.png);;All files (*)")[0]
-
+            file_path = QFileDialog.getSaveFileName(
+                                                self,
+                                                "Save Plot",
+                                                "",
+                                                "PNG files (*.png);;PDF files (*.pdf);;All files (*)",
+                                                "PNG files (*.png)"  # Set the default selected filter
+                                            )[0]
             if file_path:
                 # If saving as a PDF
                 if file_path.endswith(".pdf"):

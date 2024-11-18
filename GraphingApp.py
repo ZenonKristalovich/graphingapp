@@ -7,8 +7,11 @@ from PyQt5.QtGui import QPainter, QPixmap
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
+import os
+from PyQt5.QtGui import QIcon
 
-#pyinstaller --onefile --noconsole --icon=Gamma.jpg --hidden-import=matplotlib.backends.backend_pdf GraphingApp.py
+#pyinstaller --onefile --noconsole --add-data "base_background.png;." --add-data "white.png;." --add-data "blue.png;." --add-data "Gamma.jpg;." --icon=Gamma.jpg --hidden-import=matplotlib.backends.backend_pdf GraphingApp.py
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -79,17 +82,30 @@ class MainWindow(QMainWindow):
     def paintEvent(self, event):
         # Create a QPainter object
         painter = QPainter(self)
-
+        if hasattr(sys, '_MEIPASS'):
+            # If running as a bundled app (PyInstaller)
+            base_image = os.path.join(sys._MEIPASS, 'base_background.png')
+            icon = blue_image = os.path.join(sys._MEIPASS, 'Gamma.jpg')
+        else:
+            # If running from the source directory
+            base_image = 'base_background.png'
+            icon = 'Gamma.jpg'
         # Load the background image
-        background = QPixmap('base_background.png')
+        background = QPixmap(base_image)
+        self.setWindowIcon(QIcon(icon))
 
         # Draw the background image scaled to the widget's size
         painter.drawPixmap(self.rect(), background)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_EnableHighDpiScaling)  # Enable high DPI scaling
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
+    if hasattr(sys, '_MEIPASS'):
+        icon = blue_image = os.path.join(sys._MEIPASS, 'Gamma.jpg')
+    else:
+        icon = 'Gamma.jpg'
+
+    app.setWindowIcon(QIcon(icon))
 
     screen = QGuiApplication.primaryScreen()
     screen_size = screen.size()
