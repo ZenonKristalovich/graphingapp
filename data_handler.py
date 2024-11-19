@@ -22,8 +22,6 @@ def read_csv(filename):
     return [], [], [], 0
 
 def read_multi_csv(filenames):
-    print("Current working directory:", os.getcwd())
-    
     matrix = []
     row_names = []
     temperatures = [] # Using a set to keep unique temperatures
@@ -59,7 +57,6 @@ def read_multi_csv(filenames):
                         matrix[row_idx][component_index].extend(component_values)
 
         # Convert temperatures set back to a sorted list
-        print(matrix)
 
         return matrix, row_names, temperatures, components
 

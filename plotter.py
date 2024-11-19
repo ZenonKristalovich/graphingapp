@@ -77,12 +77,13 @@ def draw_plot(canvas, matrix, row_names, plot_index, temperatures,
 def draw_multi_plot(canvas, matrix, row_names, plot_index, component_index, files, temperatures, 
               components, x_bounds, y_bounds, dashed_lines, title, 
               x_title, y_title, pointer_size, component_names, pointer_types,
-              legend, colours,hollow, line, cap_size, filenames):
+              legend, colours,hollow, line, cap_size, filenames, component_titles):
     # Clear the previous plot on the canvas
     canvas.axes.clear()
 
     # Calculate the correct indices for plotting
-    pos = 2 * plot_index
+
+    pos = 2 * (plot_index % 6 )
     if pos + 1 >= len(matrix):
         print("Index out of range")
         return
@@ -90,28 +91,24 @@ def draw_multi_plot(canvas, matrix, row_names, plot_index, component_index, file
     # Extract y_data and uncertainty data
     y_data = matrix[pos][component_index]
     uncertainty_data = matrix[pos + 1][component_index]
-    print(y_data)
-    print(files)
+
     # Organize y_data and uncertainty data by components
     y_data_by_temp = np.array_split(y_data,files)
     uncertainty_by_temp = np.array_split(uncertainty_data,files)
-    print(y_data_by_temp)
+
 
     # Plot the data for the selected component
     count = 0
     for file_idx, (y_values, uncertainty_values) in enumerate(zip(y_data_by_temp, uncertainty_by_temp)):
         temperatures_used = temperatures[count%len(temperatures)]
         count += 1
-        print("Swap")
-        print(temperatures_used)
-        print(y_values)
-        print(uncertainty_values)
         canvas.axes.errorbar(
             temperatures_used,
             y_values,
             yerr=uncertainty_values,
             fmt=pointer_types[file_idx],  # Use the corresponding shape from shape_matrix
             color=colours[file_idx],
+            markerfacecolor= hollow[file_idx],
             label=filenames[file_idx],
             markersize=pointer_size,
             elinewidth=line,
@@ -122,7 +119,7 @@ def draw_multi_plot(canvas, matrix, row_names, plot_index, component_index, file
     # Set axis labels and title
     canvas.axes.set_xlabel(x_title if x_title else 'Temperature [K]', labelpad=10)
     canvas.axes.set_ylabel(y_title if y_title else (row_names[pos] if pos < len(row_names) else ""))
-    canvas.axes.set_title(title if title is not None else component_names[component_index])
+    canvas.axes.set_title(title if title is not None else component_titles[component_index])
 
     # Apply bounds if provided
     if x_bounds:
@@ -156,7 +153,7 @@ def draw_multi_plot(canvas, matrix, row_names, plot_index, component_index, file
     else:
         if legend != "No Legend":
             canvas.axes.legend()
-    print("Draw Canvas")
+
     # Adjust layout and draw the canvas
     canvas.figure.tight_layout()
     canvas.draw()

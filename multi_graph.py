@@ -55,7 +55,7 @@ class MultiGraphApp(QWidget):
         self.setWindowIcon(QIcon(icon))
 
         #Data
-        self.font_size = 20
+        self.font_size = 24
         self.font_style = "Arial"
         self.x_bounds = None
         self.y_bounds = None
@@ -63,13 +63,14 @@ class MultiGraphApp(QWidget):
         self.title = None
         self.x_title = None
         self.y_title = None
-        self.pointer_size = 8
+        self.pointer_size = 12
         self.component_names =  ['A', 'B0', 'B1','XX','XX','XX']
+        self.component_titles = ['A: Fe3+ (Td)','B0: Fe3+ (Oh)','B1:Fe3+ (Oh)','Unknown','Unknown']
         self.pointer_types = ['o','o','o','o','o','o','o','o']
         self.colours = ['#FF1493','#8A2BE2','#20B2AA','#ff0000','#ff0000','#ff0000']
-        self.legend = "TopRight"
+        self.legend = "Inside"
         self.hollow = self.colours
-        self.line_size = 2
+        self.line_size = 3
         self.cap_size = 4
 
         # Load data
@@ -77,7 +78,6 @@ class MultiGraphApp(QWidget):
         self.total_graphs = int(len(self.matrix)/2)
         self.current_file_index = 0
         self.current_component_index =0
-        self.plot_index = 0
         self.files = len(filenames)
 
         # Set up layout
@@ -251,7 +251,7 @@ class MultiGraphApp(QWidget):
         self.line_input.setEditable(True)
         self.line_input.setFixedWidth(int(150*self.width)) 
         self.line_input.setFixedHeight(int(40*self.height)) 
-        line_options = ["2","4","6","8","10","12"]
+        line_options = ["2","3","4","6","8","10","12"]
         self.line_input.addItems(line_options)
         self.line_input.setCurrentText(str(self.line_size))
         grid.addWidget(self.line_input, 11 + self.files, 2) 
@@ -270,7 +270,7 @@ class MultiGraphApp(QWidget):
         self.legend_input.setFixedHeight(int(40*self.height)) 
         legend_pos = ["TopLeft","TopRight","BottomLeft","BottomRight","Inside","No Legend"]
         self.legend_input.addItems(legend_pos)
-        self.legend_input.setCurrentText("TopRight")
+        self.legend_input.setCurrentText(self.legend)
         grid.addWidget(self.legend_input, 13 + self.files, 2, 1, 2) 
 
     def setup_pointers(self, grid):
@@ -399,21 +399,26 @@ class MultiGraphApp(QWidget):
                   self.temperatures, self.components, self.x_bounds,self.y_bounds, 
                   self.dashed_lines, self.title, self.x_title,self.y_title, self.pointer_size,
                   self.component_names, self.pointer_types, self.legend, self.colours,
-                  self.hollow, self.line_size, self.cap_size, self.file_names_short)
+                  self.hollow, self.line_size, self.cap_size, self.file_names_short, self.component_titles)
 
     def next_file(self):
+        self.filter_reset()
         self.current_file_index += 1
-        self.current_component_index = self.current_component_index // self.total_graphs
-        self.plot_index = self.current_file_index % self.total_graphs
+        self.current_component_index = self.current_file_index // self.total_graphs
+        if self.current_file_index >= (self.total_graphs* self.components):
+            self.current_file_index = 0
+            self.current_component_index = 0
+        print(self.current_file_index)
         self.graph_title.setText(f'Graph Image {self.current_file_index + 1}/{self.total_graphs * self.components}')
         self.plot_data()
 
     def previous_file(self):
         self.filter_reset()
-        self.current_file_index = (self.current_file_index - 1) % self.total_graphs
+        self.current_file_index -= 1
         if self.current_file_index < 0:
-            self.current_file_index = self.total_graphs - 1
-        self.graph_title.setText(f'Graph Image {self.current_file_index + 1}/{self.total_graphs}')
+            self.current_file_index = self.total_graphs * self.components - 1
+        self.current_component_index = self.current_file_index // self.total_graphs
+        self.graph_title.setText(f'Graph Image {self.current_file_index + 1}/{self.total_graphs * self.components}')
         self.plot_data()
         
     def download_plot(self):
@@ -439,12 +444,20 @@ class MultiGraphApp(QWidget):
 #EXCESS FUNCTIONS===================================================================
 
     def apply_font_size(self):
-        selected_font_size = self.font_size_input.currentText()
-        self.functions.apply_font_size(selected_font_size)
+        try:
+            selected_font_size = self.font_size_input.currentText()
+            self.functions.apply_font_size(selected_font_size)
+        except ValueError:
+            warning = "Invalid Font Size"
+            self.show_warning(warning)
 
     def apply_font_style(self):
-        selected_font_style = self.font_style_input.currentText()
-        self.functions.apply_font_style(selected_font_style)
+        try:
+            selected_font_style = self.font_style_input.currentText()
+            self.functions.apply_font_style(selected_font_style)
+        except ValueError:
+            warning = "Invalid Font Style"
+            self.show_warning(warning)
 
     def apply_x_bounds(self):
         try:
@@ -602,7 +615,7 @@ class MultiGraphApp(QWidget):
 
     def filter_reset(self):
         if not self.checkboxes[0].isChecked():
-            self.font_size = 8
+            self.font_size = 24
             self.font_size_input.setCurrentText(str(self.font_size))
         if not self.checkboxes[1].isChecked():
             self.font_style = "Arial"
@@ -628,7 +641,7 @@ class MultiGraphApp(QWidget):
             self.y_title = None
             self.inputs[5].setText("")
         if not self.checkboxes[8].isChecked():
-            self.pointer_size = 8
+            self.pointer_size = 12
             self.pointer_size_input.setCurrentText(str(self.pointer_size))
             self.hollow = ['#FF1493','#8A2BE2','#20B2AA','#ff0000','#ff0000','#ff0000']
             self.hollow_input.setCurrentText("Full")
@@ -642,11 +655,11 @@ class MultiGraphApp(QWidget):
                 self.pointers[i].setCurrentText("Circle (o)")
                 self.color_buttons[i].setStyleSheet(f"background-color: {self.colours[i]};")
         if not self.checkboxes[10].isChecked():
-            self.line_size = 2
+            self.line_size = 3
             self.line_input.setCurrentText(str(self.line_size))
         if not self.checkboxes[11].isChecked():
             self.cap_size = 4
             self.cap_input.setCurrentText(str(self.cap_size))
         if not self.checkboxes[12].isChecked():
-            self.legend = "TopRight"
+            self.legend = "Inside"
             self.legend_input.setCurrentText(self.legend)

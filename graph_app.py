@@ -54,7 +54,7 @@ class GraphApp(QWidget):
         self.setWindowIcon(QIcon(icon))
 
         #Data
-        self.font_size = 20
+        self.font_size = 24
         self.font_style = "Arial"
         self.x_bounds = None
         self.y_bounds = None
@@ -62,13 +62,13 @@ class GraphApp(QWidget):
         self.title = None
         self.x_title = None
         self.y_title = None
-        self.pointer_size = 8
+        self.pointer_size = 12
         self.component_names =  ['A', 'B0', 'B1','XX','XX','XX']
         self.pointer_types = ['o','o','o','o','o','o','o','o']
         self.colours = ['#FF1493','#8A2BE2','#20B2AA','#ff0000','#ff0000','#ff0000']
-        self.legend = "TopRight"
+        self.legend = "Inside"
         self.hollow = self.colours
-        self.line_size = 2
+        self.line_size = 3
         self.cap_size = 4
 
         # Load data
@@ -265,7 +265,7 @@ class GraphApp(QWidget):
         self.legend_input.setFixedHeight(int(40*self.height)) 
         legend_pos = ["TopLeft","TopRight","BottomLeft","BottomRight","Inside", "No Legend"]
         self.legend_input.addItems(legend_pos)
-        self.legend_input.setCurrentText("TopRight")
+        self.legend_input.setCurrentText(self.legend)
         grid.addWidget(self.legend_input, 13 + self.components, 2, 1, 2) 
 
     def setup_pointers(self, grid):
@@ -432,12 +432,20 @@ class GraphApp(QWidget):
 #EXCESS FUNCTIONS===================================================================
 
     def apply_font_size(self):
-        selected_font_size = self.font_size_input.currentText()
-        self.functions.apply_font_size(selected_font_size)
+        try:
+            selected_font_size = self.font_size_input.currentText()
+            self.functions.apply_font_size(selected_font_size)
+        except ValueError:
+            warning = "Invalid Font Size"
+            self.show_warning(warning)
 
     def apply_font_style(self):
-        selected_font_style = self.font_style_input.currentText()
-        self.functions.apply_font_style(selected_font_style)
+        try:
+            selected_font_style = self.font_style_input.currentText()
+            self.functions.apply_font_style(selected_font_style)
+        except ValueError:
+            warning = "Invalid Font Style"
+            self.show_warning(warning)
 
     def apply_x_bounds(self):
         try:
@@ -510,7 +518,7 @@ class GraphApp(QWidget):
                 self.hollow = self.colours
             self.plot_data()
         except ValueError:
-            warning = "Invalid Font Size"
+            warning = "Invalid Pointer Size"
             self.show_warning(warning)
 
     def apply_pointer_shapes(self):
@@ -561,6 +569,7 @@ class GraphApp(QWidget):
 
     def start_up(self):
         plt.rcParams['font.size'] = self.font_size
+        plt.rcParams['font.family'] = self.font_style
 
     def paintEvent(self, event):
         # Create a QPainter object
@@ -598,7 +607,7 @@ class GraphApp(QWidget):
 
     def filter_reset(self):
         if not self.checkboxes[0].isChecked():
-            self.font_size = 8
+            self.font_size = 24
             self.font_size_input.setCurrentText(str(self.font_size))
         if not self.checkboxes[1].isChecked():
             self.font_style = "Arial"
@@ -624,7 +633,7 @@ class GraphApp(QWidget):
             self.y_title = None
             self.inputs[5].setText("")
         if not self.checkboxes[8].isChecked():
-            self.pointer_size = 8
+            self.pointer_size = 12
             self.pointer_size_input.setCurrentText(str(self.pointer_size))
             self.hollow = ['#FF1493','#8A2BE2','#20B2AA','#ff0000','#ff0000','#ff0000']
             self.hollow_input.setCurrentText("Full")
@@ -638,11 +647,11 @@ class GraphApp(QWidget):
                 self.pointers[i].setCurrentText("Circle (o)")
                 self.color_buttons[i].setStyleSheet(f"background-color: {self.colours[i]};")
         if not self.checkboxes[10].isChecked():
-            self.line_size = 2
+            self.line_size = 3
             self.line_input.setCurrentText(str(self.line_size))
         if not self.checkboxes[11].isChecked():
             self.cap_size = 4
             self.cap_input.setCurrentText(str(self.cap_size))
         if not self.checkboxes[12].isChecked():
-            self.legend = "TopRight"
+            self.legend = "Inside"
             self.legend_input.setCurrentText(self.legend)
