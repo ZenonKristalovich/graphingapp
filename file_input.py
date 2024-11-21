@@ -25,7 +25,7 @@ class File_Input(QWidget):
 
         # Outer layout to add padding around the grid layout
         outer_layout = QVBoxLayout()
-        outer_layout.setContentsMargins(500, 100, 500, 300)  # Add margins (left, top, right, bottom)
+        outer_layout.setContentsMargins(int(500*self.width), int(100*self.height), int(500*self.width), int(300*self.height))  # Add margins (left, top, right, bottom)
 
         # Set up the main layout using QGridLayout
         main_layout = QGridLayout()

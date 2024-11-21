@@ -38,6 +38,8 @@ class MultiGraphApp(QWidget):
         screen_height = screen_size.height()
         self.width = screen_width / 2256
         self.height = screen_height/ 1504
+        self.x_scale = 1
+        self.y_scale = 1
 
         if hasattr(sys, '_MEIPASS'):
             # If running as a bundled app (PyInstaller)
@@ -55,7 +57,7 @@ class MultiGraphApp(QWidget):
         self.setWindowIcon(QIcon(icon))
 
         #Data
-        self.font_size = 24
+        self.font_size = 12
         self.font_style = "Arial"
         self.x_bounds = None
         self.y_bounds = None
@@ -63,15 +65,15 @@ class MultiGraphApp(QWidget):
         self.title = None
         self.x_title = None
         self.y_title = None
-        self.pointer_size = 12
+        self.pointer_size = 7
         self.component_names =  ['A', 'B0', 'B1','XX','XX','XX']
         self.component_titles = ['A: Fe3+ (Td)','B0: Fe3+ (Oh)','B1:Fe3+ (Oh)','Unknown','Unknown']
         self.pointer_types = ['o','o','o','o','o','o','o','o']
         self.colours = ['#FF1493','#8A2BE2','#20B2AA','#ff0000','#ff0000','#ff0000']
         self.legend = "Inside"
         self.hollow = self.colours
-        self.line_size = 3
-        self.cap_size = 4
+        self.line_size = 1
+        self.cap_size = 2
 
         # Load data
         self.matrix, self.row_names,self.temperatures,self.components = read_multi_csv(self.filenames)
@@ -135,8 +137,9 @@ class MultiGraphApp(QWidget):
 
         # Set up Matplotlib canvas
         self.canvas = FigureCanvas(Figure(figsize=(width, height), dpi=dpi))
+        self.canvas.setFixedHeight(int( (700 * self.y_scale)*self.height))
+        self.canvas.setFixedWidth(int( (1250 *self.x_scale)*self.width))
         self.canvas.axes = self.canvas.figure.add_subplot(111)
-        self.canvas.setFixedHeight(int(700*self.height))
         self.grid.addWidget(self.canvas, 1, 6, 12, 2)
 
         # Image Control Buttons
@@ -176,6 +179,11 @@ class MultiGraphApp(QWidget):
         lbl.setFixedWidth(int(150*self.width))
         lbl.setFixedHeight(int(45*self.height))
         grid.addWidget(lbl, 13 + self.files, 1)
+
+        lbl = QLabel("Image Width:")
+        lbl.setFixedWidth(int(150*self.width))
+        lbl.setFixedHeight(int(40*self.height))
+        grid.addWidget(lbl, 14 + self.files, 1)
 
     def setup_inputs(self, grid):
         self.inputs = []
@@ -288,13 +296,13 @@ class MultiGraphApp(QWidget):
         for i in range(self.files):
 
             temp = QLabel("")
-            temp.setFixedHeight(int(45*self.height))
+            temp.setFixedHeight(int(40*self.height))
             grid.addWidget(temp, i + start, 1)
 
 
             name = QLineEdit(self.file_names_short[i])
-            name.setFixedWidth(int(100*self.width))
-            grid.addWidget(name, i + start, 2)
+            name.setFixedWidth(int(220*self.width))
+            grid.addWidget(name, i + start, 2,1,2)
             self.alter_componenets.append(name)
             
             selection = QComboBox()
@@ -302,7 +310,7 @@ class MultiGraphApp(QWidget):
             selection.setFixedHeight(int(40*self.height))
             selection.addItems(common_pointer_shapes)
             selection.setCurrentText("Circle (o)")
-            grid.addWidget(selection, i + start, 3,1,2)
+            grid.addWidget(selection, i + start, 3,1,2,alignment=Qt.AlignRight)
             self.pointers.append(selection)
 
             # Create a square button
@@ -329,6 +337,16 @@ class MultiGraphApp(QWidget):
             self.grid.addWidget(button, 11 + self.files + i, 4)
             self.buttons.append(button)
         
+        button = QPushButton("-")
+        button.setFixedWidth(int(150*self.width))
+        self.grid.addWidget(button, 14 + self.files, 2)
+        self.buttons.append(button)
+
+        button = QPushButton("+")
+        button.setFixedWidth(int(150*self.width))
+        self.grid.addWidget(button, 14 + self.files, 3)
+        self.buttons.append(button)
+
         self.buttons[0].clicked.connect(self.apply_font_size)
         self.buttons[1].clicked.connect(self.apply_font_style)
         self.buttons[2].clicked.connect(self.apply_x_bounds)
@@ -342,6 +360,8 @@ class MultiGraphApp(QWidget):
         self.buttons[10].clicked.connect(self.set_line)
         self.buttons[11].clicked.connect(self.set_cap)
         self.buttons[12].clicked.connect(self.set_legend)
+        self.buttons[13].clicked.connect(self.decrease_width)
+        self.buttons[14].clicked.connect(self.increase_width)
 
     def setup_checkboxes(self, grid):
         self.checkboxes = []
@@ -351,7 +371,7 @@ class MultiGraphApp(QWidget):
             self.checkboxes.append(checkbox)
             grid.addWidget(checkbox, i + 1, 5)
 
-        for i in range(3):
+        for i in range(4):
             checkbox = QCheckBox("No Reset")
             checkbox.setFixedWidth(int(175*self.width))
             self.checkboxes.append(checkbox)
@@ -613,9 +633,52 @@ class MultiGraphApp(QWidget):
         msg.addButton("Thank You!", QMessageBox.AcceptRole)
         msg.exec_()
 
+    def increase_width(self):
+        # Increment the scale
+        self.x_scale = min(self.x_scale + 0.05, 1)
+
+        # Remove the existing canvas widget from the grid layout
+        self.grid.removeWidget(self.canvas)
+
+        # Delete the old widget
+        self.canvas.deleteLater()
+        self.canvas = None  # Ensure the reference is cleared
+
+        # Create a new canvas with the updated size
+        self.canvas = FigureCanvas(Figure())  # Assuming you're using a matplotlib FigureCanvas
+        self.canvas.setFixedHeight(int((700 * self.y_scale) * self.height))
+        self.canvas.setFixedWidth(int((1250 * self.x_scale) * self.width))
+
+        # Add the new canvas to the layout
+        self.canvas.axes = self.canvas.figure.add_subplot(111)
+        self.grid.addWidget(self.canvas, 1, 6, 12, 2)
+        self.plot_data()
+    
+    def decrease_width(self):
+        # Increment the scale
+        self.x_scale = max(self.x_scale - 0.05,0.1)
+
+        # Remove the existing canvas widget from the grid layout
+        self.grid.removeWidget(self.canvas)
+
+        # Delete the old widget
+        self.canvas.deleteLater()
+        self.canvas = None  # Ensure the reference is cleared
+
+        # Create a new canvas with the updated size
+        self.canvas = FigureCanvas(Figure())  # Assuming you're using a matplotlib FigureCanvas
+        self.canvas.setFixedHeight(int((700 * self.y_scale) * self.height))
+        self.canvas.setFixedWidth(int((1250 * self.x_scale) * self.width))
+
+        # Add the new canvas to the layout
+        self.canvas.axes = self.canvas.figure.add_subplot(111)
+        self.grid.addWidget(self.canvas, 1, 6, 12, 2)
+        self.plot_data()
+
+
     def filter_reset(self):
         if not self.checkboxes[0].isChecked():
-            self.font_size = 24
+            self.font_size = 12
             self.font_size_input.setCurrentText(str(self.font_size))
         if not self.checkboxes[1].isChecked():
             self.font_style = "Arial"
@@ -641,7 +704,7 @@ class MultiGraphApp(QWidget):
             self.y_title = None
             self.inputs[5].setText("")
         if not self.checkboxes[8].isChecked():
-            self.pointer_size = 12
+            self.pointer_size = 7
             self.pointer_size_input.setCurrentText(str(self.pointer_size))
             self.hollow = ['#FF1493','#8A2BE2','#20B2AA','#ff0000','#ff0000','#ff0000']
             self.hollow_input.setCurrentText("Full")
@@ -655,11 +718,29 @@ class MultiGraphApp(QWidget):
                 self.pointers[i].setCurrentText("Circle (o)")
                 self.color_buttons[i].setStyleSheet(f"background-color: {self.colours[i]};")
         if not self.checkboxes[10].isChecked():
-            self.line_size = 3
+            self.line_size = 1
             self.line_input.setCurrentText(str(self.line_size))
         if not self.checkboxes[11].isChecked():
-            self.cap_size = 4
+            self.cap_size = 2
             self.cap_input.setCurrentText(str(self.cap_size))
         if not self.checkboxes[12].isChecked():
             self.legend = "Inside"
             self.legend_input.setCurrentText(self.legend)
+        if not self.checkboxes[13].isChecked():
+            self.x_scale = 1
+            # Remove the existing canvas widget from the grid layout
+            self.grid.removeWidget(self.canvas)
+
+            # Delete the old widget
+            self.canvas.deleteLater()
+            self.canvas = None  # Ensure the reference is cleared
+
+            # Create a new canvas with the updated size
+            self.canvas = FigureCanvas(Figure())  # Assuming you're using a matplotlib FigureCanvas
+            self.canvas.setFixedHeight(int((700 * self.y_scale) * self.height))
+            self.canvas.setFixedWidth(int((1250 * self.x_scale) * self.width))
+
+            # Add the new canvas to the layout
+            self.canvas.axes = self.canvas.figure.add_subplot(111)
+            self.grid.addWidget(self.canvas, 1, 6, 12, 2)
+            self.plot_data()
